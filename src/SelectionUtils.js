@@ -156,6 +156,33 @@ export default class SelectionUtils {
         return window.getSelection();
     }
 
+    setFakeBackground() {
+        const selection = window.getSelection();
+        if (!selection.rangeCount) return;
+        this.savedSelectionRange = selection.getRangeAt(0);
+
+        const span = document.createElement("span");
+        span.style.backgroundColor = '#a8d6ff';
+        span.appendChild(this.savedSelectionRange.extractContents());
+        this.savedSelectionRange.insertNode(span);
+        this.isFakeBackgroundEnabled = true;
+    }
+
+    removeFakeBackground() {
+        if (!this.isFakeBackgroundEnabled || !this.savedSelectionRange) {
+            return;
+        }
+
+        const span = this.savedSelectionRange.startContainer.parentNode;
+        if (span.style.backgroundColor) {
+            this.savedSelectionRange.selectNode(span);
+            const contents = this.savedSelectionRange.extractContents();
+            span.parentNode.removeChild(span);
+            this.savedSelectionRange.insertNode(contents);
+            this.isFakeBackgroundEnabled = false;
+        }
+    }
+
     setCursor(element, offset = 0) {
         const range = document.createRange();
         const selection = window.getSelection();
