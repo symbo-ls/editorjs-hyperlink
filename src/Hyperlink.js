@@ -281,11 +281,11 @@ export default class Hyperlink {
 
     validateURL(str) {
         const pattern = new RegExp('^(https?:\\/\\/)?'+ // protocol
-            '((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.)+[a-z]{2,}|'+ // domain name
-            '((\\d{1,3}\\.){3}\\d{1,3}))'+ // OR ip (v4) address
-            '(\\:\\d+)?(\\/[-a-z\\d%_.~+]*)*'+ // port and path
-            '(\\?[;&a-z\\d%_.~+=-]*)?'+ // query string
-            '(\\#[-a-z\\d_]*)?$','i'); // fragment locator
+          '((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.)+[a-z]{2,}|'+ // domain name
+          '((\\d{1,3}\\.){3}\\d{1,3}))'+ // OR ip (v4) address
+          '(\\:\\d+)?(\\/[-a-z\\d%_.~+]*)*'+ // port and path
+          '(\\?[;&a-z\\d%_.~+=-]*)?'+ // query string
+          '(\\#[-a-z\\d_]*)?$','i'); // fragment locator
         return !!pattern.test(str);
     }
 
@@ -301,8 +301,8 @@ export default class Hyperlink {
         }
 
         const isInternal = /^\/[^/\s]?/.test(link),
-            isAnchor = link.substring(0, 1) === '#',
-            isProtocolRelative = /^\/\/[^/\s]/.test(link);
+          isAnchor = link.substring(0, 1) === '#',
+          isProtocolRelative = /^\/\/[^/\s]/.test(link);
 
         if (!isInternal && !isAnchor && !isProtocolRelative) {
             link = 'http://' + link;
@@ -315,9 +315,13 @@ export default class Hyperlink {
         let anchorTag = this.selection.findParentTag('A');
         if (anchorTag) {
             this.selection.expandToTag(anchorTag);
+            console.log('1');
         } else {
             const sel = window.getSelection();
+            console.log('1.5', sel);
             if (sel.rangeCount) {
+                console.log('2');
+
                 const range = sel.getRangeAt(0).cloneRange();
                 anchorTag = document.createElement('a');
                 anchorTag.href = link;
@@ -329,7 +333,9 @@ export default class Hyperlink {
                     const newRange = document.createRange();
                     newRange.selectNodeContents(anchorTag);
                     sel.addRange(newRange);
+                    console.log('X');
                 } else {
+                    console.log('Y');
                     sel.addRange(range);
                 }
             }

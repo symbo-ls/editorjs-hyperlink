@@ -1,13 +1,9 @@
 export default class SelectionUtils {
-
     constructor() {
         this.selection = null;
         this.savedSelectionRange = null;
         this.isFakeBackgroundEnabled = false;
-        this.commandBackground = 'backColor';
-        this.commandRemoveFormat = 'removeFormat';
     }
-
 
     isElement(node) {
         return node && typeof node === 'object' && node.nodeType && node.nodeType === Node.ELEMENT_NODE;
@@ -48,7 +44,7 @@ export default class SelectionUtils {
         return result;
     }
 
-    CSS() {
+    static CSS() {
         return {
             editorWrapper: 'codex-editor',
             editorZone: 'codex-editor__redactor',
@@ -91,7 +87,7 @@ export default class SelectionUtils {
     }
 
     isAtEditor() {
-        const selection = SelectionUtils.get();
+        const selection = this.get();
         let selectedNode = (selection.anchorNode || selection.focusNode);
 
         if (selectedNode && selectedNode.nodeType === Node.TEXT_NODE) {
@@ -101,13 +97,13 @@ export default class SelectionUtils {
         let editorZone = null;
 
         if (selectedNode) {
-            editorZone = selectedNode.closest(`.${SelectionUtils.CSS.editorZone}`);
+            editorZone = selectedNode.closest(`.${this.constructor.CSS().editorZone}`);
         }
         return editorZone && editorZone.nodeType === Node.ELEMENT_NODE;
     }
 
     isSelectionExists() {
-        const selection = SelectionUtils.get();
+        const selection = this.get();
         return !!selection.anchorNode;
     }
 
@@ -117,7 +113,7 @@ export default class SelectionUtils {
     }
 
     static get rect() {
-        let sel = document.selection, range;
+        let sel = window.getSelection();
 
         let rect = {
             x: 0,
@@ -126,30 +122,11 @@ export default class SelectionUtils {
             height: 0,
         };
 
-        if (sel && sel.type !== 'Control') {
-            range = sel.createRange();
-            rect.x = range.boundingLeft;
-            rect.y = range.boundingTop;
-            rect.width = range.boundingWidth;
-            rect.height = range.boundingHeight;
+        if (!sel || sel.rangeCount === 0) {
             return rect;
         }
 
-        if (!window.getSelection) {
-            return rect;
-        }
-
-        sel = window.getSelection();
-
-        if (sel.rangeCount === null || isNaN(sel.rangeCount)) {
-            return rect;
-        }
-
-        if (sel.rangeCount === 0) {
-            return rect;
-        }
-
-        range = sel.getRangeAt(0).cloneRange();
+        const range = sel.getRangeAt(0).cloneRange();
 
         if (range.getBoundingClientRect) {
             rect = range.getBoundingClientRect();
@@ -203,21 +180,8 @@ export default class SelectionUtils {
         return range.getBoundingClientRect();
     }
 
-    removeFakeBackground() {
-        if (!this.isFakeBackgroundEnabled) {
-            return;
-        }
-        this.isFakeBackgroundEnabled = false;
-        document.execCommand(this.commandRemoveFormat);
-    }
-
-    setFakeBackground() {
-        document.execCommand(this.commandBackground, false, '#a8d6ff');
-        this.isFakeBackgroundEnabled = true;
-    }
-
     save() {
-        this.savedSelectionRange = SelectionUtils.range;
+        this.savedSelectionRange = this.constructor.range;
     }
 
     restore() {
