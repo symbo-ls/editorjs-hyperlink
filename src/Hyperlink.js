@@ -311,30 +311,55 @@ export default class Hyperlink {
         return link;
     }
 
-    insertLink(link, target='', rel='') {
+    insertLink(link, target = '', rel = '') {
         let anchorTag = this.selection.findParentTag('A');
         if (anchorTag) {
             this.selection.expandToTag(anchorTag);
-        }else{
-            document.execCommand(this.commandLink, false, link);
-            anchorTag = this.selection.findParentTag('A');
+        } else {
+            const sel = window.getSelection();
+            if (sel.rangeCount) {
+                const range = sel.getRangeAt(0).cloneRange();
+                anchorTag = document.createElement('a');
+                anchorTag.href = link;
+                range.surroundContents(anchorTag);
+                sel.removeAllRanges();
+                sel.addRange(range);
+            }
         }
-        if(anchorTag) {
-            if(!!target) {
-                anchorTag['target'] = target;
-            }else{
+        if (anchorTag) {
+            if (!!target) {
+                anchorTag.target = target;
+            } else {
                 anchorTag.removeAttribute('target');
             }
-            if(!!rel) {
-                anchorTag['rel'] = rel;
-            }else{
+            if (!!rel) {
+                anchorTag.rel = rel;
+            } else {
                 anchorTag.removeAttribute('rel');
             }
         }
     }
 
     unlink() {
-        document.execCommand(this.commandUnlink);
+        const sel = window.getSelection();
+        if (sel.rangeCount) {
+            const range = sel.getRangeAt(0);
+            const anchorTag = this.selection.findParentTag('A');
+            if (anchorTag) {
+                const newRange = document.createRange();
+                newRange.selectNodeContents(anchorTag);
+                sel.removeAllRanges();
+                sel.addRange(newRange);
+                const docFrag = range.extractContents();
+                const children = Array.from(docFrag.childNodes);
+                children.forEach((node) => {
+                    range.insertNode(node);
+                    range.setStartAfter(node);
+                });
+                sel.removeAllRanges();
+                sel.addRange(range);
+            }
+        }
     }
 
     iconSvg(name, width = 14, height = 14) {
