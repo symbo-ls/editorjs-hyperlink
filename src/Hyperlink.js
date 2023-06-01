@@ -321,9 +321,17 @@ export default class Hyperlink {
                 const range = sel.getRangeAt(0).cloneRange();
                 anchorTag = document.createElement('a');
                 anchorTag.href = link;
-                range.surroundContents(anchorTag);
+                const content = range.extractContents();
+                anchorTag.appendChild(content);
+                range.insertNode(anchorTag);
                 sel.removeAllRanges();
-                sel.addRange(range);
+                if (anchorTag.childNodes.length > 0) {  // Prevent collapsing if there are child nodes
+                    const newRange = document.createRange();
+                    newRange.selectNodeContents(anchorTag);
+                    sel.addRange(newRange);
+                } else {
+                    sel.addRange(range);
+                }
             }
         }
         if (anchorTag) {
