@@ -136,6 +136,15 @@ export default class Hyperlink {
 
         this.nodes.wrapper.appendChild(this.nodes.buttonSave);
 
+        // fix focus issue for SAFARI
+        this.nodes.input.addEventListener('mousedown', (event) => {
+            event.preventDefault();
+        });
+
+        this.nodes.buttonSave.addEventListener('mousedown', (event) => {
+            event.preventDefault();
+        });
+
         return this.nodes.wrapper;
     }
 
@@ -315,13 +324,9 @@ export default class Hyperlink {
         let anchorTag = this.selection.findParentTag('A');
         if (anchorTag) {
             this.selection.expandToTag(anchorTag);
-            console.log('1');
         } else {
             const sel = window.getSelection();
-            console.log('1.5', sel);
             if (sel.rangeCount) {
-                console.log('2');
-
                 const range = sel.getRangeAt(0).cloneRange();
                 anchorTag = document.createElement('a');
                 anchorTag.href = link;
@@ -333,9 +338,7 @@ export default class Hyperlink {
                     const newRange = document.createRange();
                     newRange.selectNodeContents(anchorTag);
                     sel.addRange(newRange);
-                    console.log('X');
                 } else {
-                    console.log('Y');
                     sel.addRange(range);
                 }
             }
@@ -356,6 +359,7 @@ export default class Hyperlink {
 
     unlink() {
         const sel = window.getSelection();
+
         if (sel.rangeCount) {
             const range = sel.getRangeAt(0);
             const anchorTag = this.selection.findParentTag('A');
@@ -364,12 +368,19 @@ export default class Hyperlink {
                 newRange.selectNodeContents(anchorTag);
                 sel.removeAllRanges();
                 sel.addRange(newRange);
-                const docFrag = range.extractContents();
-                const children = Array.from(docFrag.childNodes);
-                children.forEach((node) => {
-                    range.insertNode(node);
-                    range.setStartAfter(node);
-                });
+
+                // Get a reference to the parent of the anchor tag
+                const parent = anchorTag.parentNode;
+
+                // Insert each child of the anchor tag before the anchor tag itself
+                while (anchorTag.firstChild) {
+                    parent.insertBefore(anchorTag.firstChild, anchorTag);
+                }
+
+                // Now it's safe to remove the anchor tag
+                parent.removeChild(anchorTag);
+
+                // Restore the selection range
                 sel.removeAllRanges();
                 sel.addRange(range);
             }
